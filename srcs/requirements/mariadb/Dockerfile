@@ -1,20 +1,17 @@
-FROM alpine:3.16
+FROM debian:bullseye-slim
 
-RUN apk update && apk add --no-cache mariadb mariadb-client
+RUN apt-get update && apt-get upgrade -y 
 
-RUN mkdir -p /var/run/mysqld; \
-    chmod 777 /var/run/mysqld; \
-    { echo '[mysqld]'; \
-      echo 'skip-host-cache'; \
-      echo 'skip-name-resolve'; \
-      echo 'bind-address=0.0.0.0'; \
-    } | tee /etc/my.cnf.d/docker.cnf; \
-    sed -i "s|skip-networking|skip-networking=0|g" \
-      /etc/my.cnf.d/mariadb-server.cnf
+RUN apt-get install mariadb-server mariadb-client -y && apt-get clean
 
-EXPOSE 3306
+RUN sed -i "s/^bind-address\s*=.*$/bind-address = 0.0.0.0/" /etc/mysql/mariadb.conf.d/50-server.cnf
 
-COPY requirements/mariadb/conf/create_db.sh /tmp/
-RUN chmod +x /tmp/create_db.sh
+WORKDIR /setup
 
-CMD ["/bin/sh", "-c", "/tmp/create_db.sh"]
+COPY ./mariadb-setup.sh /setup/mariadb-setup.sh
+
+RUN chmod +x mariadb-setup.sh
+
+ENTRYPOINT [ "sh", "/setup/mariadb-setup.sh" ]
+
+CMD [ "mysqld_safe" ]
