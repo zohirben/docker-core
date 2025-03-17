@@ -1,12 +1,9 @@
-FROM alpine:3.20
+FROM alpine:3.16
 
-RUN apk update && apk add --no-cache nginx openssl
+RUN apk update && apk upgrade && apk add --no-cache nginx
 
-RUN mkdir -p /etc/nginx/ssl && openssl req -x509 -nodes -days 365 \
-	-newkey rsa:2048 -keyout /etc/nginx/ssl/nginx.key \
-	-out /etc/nginx/ssl/nginx.crt \
-	-subj "/CN=zbenaiss.42.fr"
+EXPOSE 443
 
-COPY /nginx.conf /etc/nginx/http.d/nginx.conf
+CMD ["nginx", "-g", "daemon off;"]
 
-CMD	[ "nginx", "-g", "daemon off;" ]
+
