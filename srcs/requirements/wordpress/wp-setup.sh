@@ -2,17 +2,16 @@
 
 set -e
 
+echo "SH::Starting wp-setup.sh script..."
 
 if [ ! -f "/var/www/html/wp-config.php" ]; then
-#   # Create directory for WordPress if it doesn't exist
+  echo "SH::wp-config.php not found. Setting up WordPress..."
   mkdir -p /var/www/html
 
-  # Download WordPress
   echo "SH::Downloading WordPress..."
   wp core download --path="/var/www/html" --allow-root
 
-
-  # Create wp-config.php with database credentials
+  echo "SH::Creating wp-config.php..."
   wp config create \
      --dbname="${DB_NAME}" \
      --dbuser="${DB_USER}" \
@@ -21,7 +20,6 @@ if [ ! -f "/var/www/html/wp-config.php" ]; then
      --path="/var/www/html" \
      --allow-root
 
-  # Install WordPress with the given admin credentials and site details
   echo "SH::Installing WordPress..."
   wp core install \
      --url="${WORDPRESS_URL}" \
@@ -32,16 +30,19 @@ if [ ! -f "/var/www/html/wp-config.php" ]; then
      --path="/var/www/html" \
      --allow-root
 
-   # Create user
-   wp user create "${WORDPRESS_USER}" "${WORDPRESS_USER_EMAIL}" \
+  echo "SH::Creating WordPress user..."
+  wp user create "${WORDPRESS_USER}" "${WORDPRESS_USER_EMAIL}" \
       --role="subscriber" \
       --user_pass="${WORDPRESS_USER_PASSWORD}" \
       --path="/var/www/html" \
       --allow-root
+
   chown -R www-data:www-data /var/www/html
 else
+  echo "SH::wp-config.php found. Skipping setup..."
   chown -R www-data:www-data /var/www/html
 fi
 
+echo "SH::wp-setup.sh script completed."
+
 exec "$@"
-# exec "php-fpm8.2 -F"
